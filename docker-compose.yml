@@ -2,40 +2,37 @@ version: '3.8'
 
 services:
   app:
-    build: .
-    container_name: go-web-app
-    ports:
-      - "8080:8080"
+    build:
+      context: .
+    container_name: dotportal-app
     volumes:
       - .:/app
+    environment:
+      - DB_DSN=postgres://postgres:postgres@db:5432/broker_portal?sslmode=disable
+    ports:
+      - "8080:8080"
     depends_on:
       - db
-    restart: always
+    networks:
+      - broker-net
 
   db:
     image: postgres:15
-    container_name: postgres-db
+    container_name: broker-db
+    restart: always
     environment:
+      POSTGRES_DB: broker_portal
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
     ports:
-      - "5050:80"
-    depends_on:
-      - db
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - "5432:5432"
+    networks:
+      - broker-net
 
 volumes:
   pgdata:
-  pgadmin_data:
+
+networks:
+  broker-net:

@@ -1,17 +1,23 @@
-FROM golang:1.22
+# Dockerfile
 
-WORKDIR /app
+FROM golang:1.22-alpine
 
-# Install CompileDaemon for live reloading
+# Install system deps and CompileDaemon
+RUN apk add --no-cache git
 RUN go install github.com/githubnemo/CompileDaemon@latest
 
-COPY go.mod ./
-COPY go.sum ./
+# Set working directory
+WORKDIR /app
+
+# Copy go.mod and install deps
+COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy the full project
 COPY . .
 
+# Expose app port
 EXPOSE 8080
 
-# Automatically rebuild and run on source change
-CMD ["CompileDaemon", "--build=go build -o main .", "--command=./main"]
+# Run CompileDaemon (rebuild & restart on change)
+CMD ["CompileDaemon", "--build=go build -o main ./cmd/app", "--command=./main"]
